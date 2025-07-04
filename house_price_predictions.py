@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+from sklearn.preprocessing import OneHotEncoder
 # Load the dataset
 dataset = pd.read_excel('HousePricePrediction.xlsx')
 
@@ -19,13 +19,13 @@ obj= (dataset.dtypes == 'object') # Identify categorical variables
 object_cols = list(obj[obj].index)# Get the list of categorical variables
 print("Categorical variables:", len(object_cols)) # Print the number of categorical variables
 
-int_= (dataset.dtypes == 'int')
+int_= (dataset.dtypes == 'int') #
 num_cols = list(int_[int_].index)
-print("Categorical variables:", len(num_cols))
+print("Integer variables:", len(num_cols))
 
 flt = (dataset.dtypes == 'float')
 flt_cols = list(flt[flt].index)
-print("Categorical variables:", len(flt_cols))
+print("Float variables:", len(flt_cols))
 
 
 # Exploratory Data Analysis
@@ -88,3 +88,37 @@ for j in range(i + 1, len(axes)): # Iterate over remaining axes
 
 plt.tight_layout(rect=[0, 0, 1, 0.95]) # Adjust layout to prevent overlap
 plt.show() # Display the plots
+
+
+# Data Cleaning
+
+dataset.drop(['Id'], axis = 1, inplace= True) # Drop the 'Id' column as it is not needed for analysis
+
+dataset['SalePrice'] = dataset['SalePrice'].fillna(dataset['SalePrice'].mean()) # Fill missing values in 'SalePrice' with the mean value
+
+new_dataset = dataset.dropna() # Drop rows with any missing values
+
+new_dataset.isnull().sum() # Check for any remaining missing values
+
+#One-Hot Encoding for Label Categorical Features
+
+s = (new_dataset.dtypes == 'object') # Identify categorical variables
+object_cols = list(s[s].index) # Get the list of categorical variables
+
+print(object_cols) # Print the list of categorical variables
+print("Categorical variables after cleaning:", len(object_cols)) # Print the number of categorical variables
+
+# Initialize OneHotEncoder
+
+OH_encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore') # Create an instance of OneHotEncoder  
+OH_cols = pd.DataFrame(OH_encoder.fit_transform(new_dataset[object_cols])) # Apply OneHotEncoder to the categorical columns
+OH_cols.index = new_dataset.index # Set the index of the new DataFrame to match the original dataset
+OH_cols.columns = OH_encoder.get_feature_names_out() # Set the column names of the new DataFrame 
+df_final = new_dataset.drop(object_cols, axis=1) # Drop the original categorical columns from the dataset
+df_final = pd.concat([df_final, OH_cols], axis=1) # Concatenate the new one-hot encoded columns with the original dataset
+
+# Display the final dataset shape and a preview of the first few rows
+print("Original dataset shape:", dataset.shape)
+print("After cleaning and encoding shape:", df_final.shape)
+print("Final dataset preview:")
+print(df_final.head())
