@@ -1,7 +1,17 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import math
+
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
+from sklearn import svm
+from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
+
+
+
+
+
 # Load the dataset
 dataset = pd.read_excel('HousePricePrediction.xlsx')
 
@@ -98,7 +108,7 @@ dataset['SalePrice'] = dataset['SalePrice'].fillna(dataset['SalePrice'].mean()) 
 
 new_dataset = dataset.dropna() # Drop rows with any missing values
 
-new_dataset.isnull().sum() # Check for any remaining missing values
+print(new_dataset.isnull().sum() )# Check for any remaining missing values
 
 #One-Hot Encoding for Label Categorical Features
 
@@ -122,3 +132,19 @@ print("Original dataset shape:", dataset.shape)
 print("After cleaning and encoding shape:", df_final.shape)
 print("Final dataset preview:")
 print(df_final.head())
+
+#Splitting the dataset into training and testing sets
+
+X = df_final.drop(['SalePrice'], axis=1) # # X is the feature set excluding the target variable 'SalePrice'
+Y = df_final['SalePrice'] # Y is the target variable 'SalePrice'
+
+X_train, X_valid, Y_train, Y_valid = train_test_split(X, Y, train_size=0.8, test_size=0.2, random_state=0)# Split the dataset into training and validation sets
+
+
+# Model Training and Evaluation
+
+model_SVR = svm.SVR()
+model_SVR.fit(X_train, Y_train) # Fit the model on the training data
+Y_pred = model_SVR.predict(X_valid) # Predict the target variable on the validation set
+
+print ("Mean Absolute Error:", mean_absolute_error(Y_valid, Y_pred)) # Calculate and print the Mean Absolute Error
